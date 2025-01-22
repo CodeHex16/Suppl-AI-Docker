@@ -1,5 +1,6 @@
 # Ignore nested git repositories
 admin/
+api/
 api/db/
 api/llm/
 client/
