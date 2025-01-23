@@ -1,9 +1,30 @@
-```bash
-git clone https://github.com/CodeHex16/Suppl-Ai-Docker.git Suppl-Ai-Docker
-cd Suppl-Ai-Docker
+# Suppl-AI Docker
 
-git clone https://github.com/CodeHex16/Suppl-AI.git client
-git clone https://github.com/CodeHex16/Database-API.git api/db 
-git clone https://github.com/CodeHex16/LLM-API.git api/llm
-git clone https://github.com/CodeHex16/AdminPanel.git admin
+## Description
+This repository contains the Dockerfile and the necessary files to build a Docker image for the Suppl-AI project.
+
+## Requirements
+ - VsCode Workspace
+```batch
+owershell -Command "iwr https://codehex16.github.io/resources/workspace/RUN.bat -OutFile run.bat; .\run.bat; rm run.bat"
+```
+
+```bash
+curl -s https://codehex16.github.io/resources/workspace/RUN.sh -o run.sh && bash run.sh && rm run.sh
+```
+
+## Usage
+To build the Docker image, run the following command:
+```bash
+docker compose build
+```
+
+To run the Docker container, run the following command:
+```bash
+docker compose up -d
+```
+
+To stop the Docker container, run the following command:
+```bash
+docker compose down
 ```

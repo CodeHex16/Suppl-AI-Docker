@@ -1,0 +1,101 @@
+services:
+  # Client Webpage (SvelteJS)
+  client-webpage:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: client-webpage
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgresql
+    volumes: # Keep for live reload
+       - ./client:/app
+    command: | # dev server for live reload
+      sh -c "
+        npm install &&
+        npm run dev
+      "
+
+  # Admin Webpage (SvelteJS)
+  admin-webpage:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    container_name: admin-webpage
+    ports:
+      - "3002:3002"
+    depends_on:
+      - postgresql
+    volumes:
+      - ./admin:/app
+    command: |
+      sh -c "
+        npm install &&
+        npm run dev
+      "
+
+  # LLM API (Python)
+  llm-api:
+    build:
+      context: .
+      dockerfile: api/llm/Dockerfile
+    container_name: llm-api
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgresql
+    environment:
+      - DATABASE_URL=postgresql://codehex16:codehex16.2024@postgresql:5432/codehex16
+      - DATABASE_URL_TEST=postgresql://codehex16:codehex16.2024@postgresql:5432/codehex16_test
+    volumes: # Keep for live reload
+      - ./api/llm:/app
+    command: python app.py
+
+  # Database API (Python)
+  database-api:
+    build:
+      context: .
+      dockerfile: api/db/Dockerfile
+    container_name: database-api
+    ports:
+      - "5001:5001"
+    depends_on:
+      - postgresql
+    environment:
+      - DATABASE_URL=postgresql://codehex16:codehex16.2024@postgresql:5432/codehex16
+      - DATABASE_URL_TEST=postgresql://codehex16:codehex16.2024@postgresql:5432/codehex16_test
+    volumes: # Keep for live reload
+      - ./api/db:/app
+    command: python app.py
+
+  # PostgreSQL Database
+  postgresql:
+    image: postgres:latest
+    container_name: postgresql
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: codehex16
+      POSTGRES_PASSWORD: codehex16.2024
+      POSTGRES_DB: codehex16
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+  
+  # pgAdmin (PostgreSQL Admin)
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: unipd.codehex16@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: codehex16.2024
+    ports:
+      - "5433:80"
+    depends_on:
+      - postgresql
+
+volumes:
+  postgres_data:
+    driver: local
+
