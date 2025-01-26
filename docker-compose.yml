@@ -6,16 +6,20 @@ services:
       dockerfile: Dockerfile
     container_name: client-webpage
     ports:
-      - "3001:3001"
+       - "53001:3001"
     depends_on:
-      - postgresql
+       - postgresql
     volumes: # Keep for live reload
        - ./client:/app
+       #exclude node_modules
+       - /app/node_modules
     command: | # dev server for live reload
-      sh -c "
+       sh -c "
         npm install &&
         npm run dev
-      "
+       "
+    stdin_open: true
+    tty: true
 
   # Admin Webpage (SvelteJS)
   admin-webpage:
@@ -24,11 +28,12 @@ services:
       dockerfile: Dockerfile
     container_name: admin-webpage
     ports:
-      - "3002:3002"
+       - "53002:3002"
     depends_on:
       - postgresql
     volumes:
       - ./admin:/app
+      - /app/node_modules
     command: |
       sh -c "
         npm install &&
@@ -42,7 +47,7 @@ services:
       dockerfile: api/llm/Dockerfile
     container_name: llm-api
     ports:
-      - "5000:5000"
+       - "55000:5000"
     depends_on:
       - postgresql
     environment:
@@ -59,7 +64,7 @@ services:
       dockerfile: api/db/Dockerfile
     container_name: database-api
     ports:
-      - "5001:5001"
+       - "50001:5001"
     depends_on:
       - postgresql
     environment:
@@ -73,8 +78,9 @@ services:
   postgresql:
     image: postgres:latest
     container_name: postgresql
+
     ports:
-      - "5432:5432"
+       - "5432:5432"
     environment:
       POSTGRES_USER: codehex16
       POSTGRES_PASSWORD: codehex16.2024
@@ -83,19 +89,35 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: always
-  
+
   # pgAdmin (PostgreSQL Admin)
   pgadmin:
     image: dpage/pgadmin4
     environment:
       PGADMIN_DEFAULT_EMAIL: unipd.codehex16@gmail.com
       PGADMIN_DEFAULT_PASSWORD: codehex16.2024
+    container_name: pgadmin
     ports:
       - "5433:80"
     depends_on:
       - postgresql
 
+  # Nginx (Web Server)
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+
+    ports:
+      - "80:80"
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - client-webpage
+      - admin-webpage
+      - llm-api
+      - database-api
+      - postgresql
+  
 volumes:
   postgres_data:
     driver: local
-
